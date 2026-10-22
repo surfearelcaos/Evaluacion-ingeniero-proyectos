@@ -1,0 +1,478 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Evaluación Ingeniero de Proyectos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700;800&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: columna de lectura única; cuestionario por partes con barra de avance fija; informe con formato de documento */
+:root{
+  --bg:#F7F5F5; --surface:#FFFFFF; --ink:#1E1718; --muted:#6B5F60; --line:#E4DCDC;
+  --brand:#9E050D; --accent:#E0151E; --soft:#FA4440; --tint:#FBECEC; --sel:#FDE3E3;
+  --ok:#2F7D4F; --warn:#B26A00; --bad:#B3261E;
+  --display:"Montserrat", "Helvetica Neue", Arial, sans-serif;
+  --body:"Source Sans 3", "Segoe UI", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){
+  --bg:#141011; --surface:#1E1819; --ink:#F1EAEA; --muted:#B3A6A7; --line:#3A3031;
+  --brand:#FA4440; --accent:#FF5A55; --soft:#FF7A72; --tint:#2A1D1E; --sel:#3A2223;
+  --ok:#6CC28F; --warn:#E3A33C; --bad:#FF7A72; color-scheme:dark }}
+:root[data-theme="dark"]{
+  --bg:#141011; --surface:#1E1819; --ink:#F1EAEA; --muted:#B3A6A7; --line:#3A3031;
+  --brand:#FA4440; --accent:#FF5A55; --soft:#FF7A72; --tint:#2A1D1E; --sel:#3A2223;
+  --ok:#6CC28F; --warn:#E3A33C; --bad:#FF7A72; color-scheme:dark }
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+.wrap{max-width:860px;margin:0 auto;padding-block:24px 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:1.7rem;font-weight:800}
+h2{font-size:1.2rem;font-weight:700}
+h3{font-size:1rem;font-weight:700}
+.eyebrow{font-family:var(--display);font-size:.72rem;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent)}
+p{margin:0}
+.muted{color:var(--muted)}
+.stack{display:flex;flex-direction:column;gap:16px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+button{font:inherit;cursor:pointer;border-radius:6px;padding:10px 18px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font-weight:600}
+button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible,label:focus-within{outline:2px solid var(--soft);outline-offset:2px}
+button:disabled{opacity:.5;cursor:default}
+input[type=text],input[type=date],select{font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:8px 10px;min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:20px}
+.brandbar{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.logo{width:28px;height:28px;flex:none}
+.brandbar span{font-family:var(--display);font-weight:800;letter-spacing:.06em;color:var(--brand);font-size:.95rem}
+.testtag{margin-left:auto;font-size:.75rem;font-weight:700;color:var(--warn);border:1px solid currentColor;border-radius:999px;padding:2px 10px}
+
+/* barra de avance */
+.progress{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);padding-block:10px;border-bottom:1px solid var(--line);margin-bottom:20px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.steps{display:grid;grid-template-columns:repeat(9,1fr);gap:4px;margin-top:8px}
+.steps i{height:5px;border-radius:3px;background:var(--line)}
+.steps i.done{background:var(--soft)} .steps i.cur{background:var(--accent)}
+.ptitle{display:flex;justify-content:space-between;gap:12px;font-size:.9rem;font-weight:600}
+
+/* ítems */
+.item{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.item.miss{border-color:var(--soft)}
+.qid{font-family:var(--display);font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.06em}
+.stem{font-weight:600}
+.opts{display:flex;flex-direction:column;gap:6px}
+.opt{display:flex;gap:10px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:6px;cursor:pointer}
+.opt:has(input:checked){background:var(--sel);border-color:var(--soft)}
+.opt input{margin-top:4px;accent-color:var(--accent)}
+.scale{display:flex;gap:6px;flex-wrap:wrap}
+.pill{position:relative}
+.pill input{position:absolute;opacity:0;inset:0}
+.pill span{display:inline-flex;min-width:42px;justify-content:center;padding:7px 10px;border:1px solid var(--line);border-radius:6px;cursor:pointer;font-variant-numeric:tabular-nums;font-size:.92rem}
+.pill input:checked+span{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+.pill input:focus-visible+span{outline:2px solid var(--soft);outline-offset:2px}
+.bip{display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center}
+.bip .a{text-align:right}
+.scalelabels{display:flex;justify-content:space-between;font-size:.78rem;color:var(--muted);gap:8px}
+@media (max-width:640px){.bip{grid-template-columns:1fr}.bip .a{text-align:left}}
+.sjt{display:grid;grid-template-columns:auto auto 1fr;gap:6px 12px;align-items:start}
+.sjt .h{font-size:.75rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;text-align:center}
+.sjt label.r{display:flex;justify-content:center;padding-top:3px}
+.sjt input{accent-color:var(--accent);width:18px;height:18px}
+.sjt .t{padding:2px 0 8px;border-bottom:1px solid var(--line)}
+.ord{display:grid;grid-template-columns:1fr auto;gap:8px 12px;align-items:center}
+.ord select{width:72px}
+.dup{color:var(--bad);font-size:.85rem}
+.nav{display:flex;justify-content:space-between;gap:12px;margin-top:24px;flex-wrap:wrap}
+.missing{font-size:.9rem;color:var(--warn)}
+
+/* informe */
+.report{background:var(--surface);border:1px solid var(--line);border-radius:4px;padding:clamp(20px,5vw,48px);display:flex;flex-direction:column;gap:32px}
+.rhead{border-bottom:3px solid var(--brand);padding-bottom:16px;display:flex;flex-direction:column;gap:6px}
+.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px 24px;font-size:.92rem}
+.meta b{display:block;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+section.rs{display:flex;flex-direction:column;gap:12px}
+section.rs>h2{display:flex;gap:10px;align-items:baseline}
+section.rs>h2 small{font-family:var(--display);font-size:.8rem;color:var(--accent)}
+.global{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center}
+@media (max-width:560px){.global{grid-template-columns:1fr}}
+.gauge{width:150px;height:150px}
+.gauge text{font-family:var(--display);fill:var(--ink)}
+.chip{display:inline-block;font-weight:700;font-size:.85rem;padding:3px 12px;border-radius:999px;border:1px solid currentColor}
+.c-hi{color:var(--ok)} .c-mid{color:var(--ink)} .c-lo{color:var(--warn)} .c-bad{color:var(--bad)}
+.dims{display:flex;flex-direction:column;gap:14px}
+.dim{display:grid;grid-template-columns:minmax(0,1fr) 54px;gap:4px 12px}
+.dim .bar{grid-column:1/-1;height:10px;background:var(--line);border-radius:5px;position:relative;overflow:hidden}
+.dim .bar i{position:absolute;inset:0 auto 0 0;background:var(--accent);border-radius:5px}
+.dim .bar .tick{position:absolute;top:-2px;bottom:-2px;width:1px;background:var(--muted);opacity:.6}
+.dim .v{text-align:right;font-family:var(--display);font-weight:700;font-variant-numeric:tabular-nums}
+.dim .d{grid-column:1/-1;font-size:.92rem;color:var(--muted)}
+.tw{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}
+td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.minibar{display:inline-block;width:80px;height:6px;background:var(--line);border-radius:3px;vertical-align:middle;margin-left:8px;position:relative;overflow:hidden}
+.minibar i{position:absolute;inset:0 auto 0 0;background:var(--soft)}
+.flag{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:6px;border:1px solid var(--line)}
+.flag.w{border-color:var(--warn)}
+.flag .dot{width:10px;height:10px;border-radius:50%;margin-top:7px;flex:none;background:var(--ok)}
+.flag.w .dot{background:var(--warn)}
+ol.q{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.note{font-size:.88rem;color:var(--muted)}
+details summary{cursor:pointer;font-weight:600}
+.ok{color:var(--ok)} .ko{color:var(--bad)}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(20px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:8px 16px;border-radius:6px;font-weight:600}
+@media (prefers-reduced-motion:no-preference){.dim .bar i{transition:width .6s ease}}
+body{margin:0}
+[hidden]{display:none!important}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4.4.1/dist/email.min.js"></script>
+</head>
+<body>
+
+<div class="wrap" id="app"></div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+const DATA = {"dims": {"D1": {"name": "Ingeniería y diseño de soluciones", "w": 0.25}, "D2": {"name": "Gestión de proyectos", "w": 0.25}, "D3": {"name": "Levantamiento y relación con el cliente", "w": 0.2}, "D4": {"name": "Criterio técnico-económico", "w": 0.15}, "D5": {"name": "Conducta profesional", "w": 0.15}}, "parts": [{"id": 1, "title": "Preferencias de trabajo", "instr": "Cada fila presenta dos formas de trabajar; ambas son válidas y las usan buenos profesionales. Marque de 1 a 6 qué tan cerca está de cada frase: 1 = totalmente como A, 6 = totalmente como B. No hay punto medio.", "fmt": "BIP", "items": [{"id": "B01", "dim": "D2", "comp": "Planificación y organización", "a": "Prefiero tener definido el alcance completo antes de iniciar un trabajo.", "b": "Prefiero iniciar con lo esencial definido e ir ajustando sobre la marcha.", "ideal": 2}, {"id": "B02", "dim": "D2", "comp": "Gestión de proyectos", "a": "Hago seguimiento de mis proyectos en una planilla o herramienta que actualizo con regularidad.", "b": "Hago seguimiento de mis proyectos conversando directamente con las personas involucradas.", "ideal": 2}, {"id": "B03", "dim": "D2", "comp": "Orientación a resultados", "a": "Prefiero comprometer fechas con un margen de holgura.", "b": "Prefiero comprometer fechas exigentes que movilicen al equipo.", "ideal": 2}, {"id": "B04", "dim": "D3", "comp": "Orientación al cliente", "a": "Con un cliente nuevo, prefiero hacer muchas preguntas antes de proponer algo.", "b": "Con un cliente nuevo, prefiero llevar una propuesta concreta y discutir sobre ella.", "ideal": 2}, {"id": "B05", "dim": "D3", "comp": "Comunicación efectiva", "a": "Me siento más cómodo explicando el detalle técnico de una solución.", "b": "Me siento más cómodo explicando el beneficio de una solución para el negocio del cliente.", "ideal": 4}, {"id": "B06", "dim": "D3", "comp": "Comunicación efectiva", "a": "Prefiero comunicarme por escrito, dejando registro.", "b": "Prefiero comunicarme en persona o por teléfono.", "ideal": 3}, {"id": "B07", "dim": "D4", "comp": "Toma de decisiones", "a": "Al decidir, me apoyo más en datos y cálculos.", "b": "Al decidir, me apoyo más en mi experiencia y criterio práctico.", "ideal": 2}, {"id": "B08", "dim": "D4", "comp": "Mejora continua", "a": "Prefiero soluciones probadas y estándar.", "b": "Prefiero soluciones nuevas, aunque tengan más incertidumbre.", "ideal": 3}, {"id": "B09", "dim": "D5", "comp": "Autonomía", "a": "Prefiero trabajar con autonomía e informar resultados.", "b": "Prefiero validar con mi jefatura los avances con frecuencia.", "ideal": 2}, {"id": "B10", "dim": "D4", "comp": "Análisis y resolución de problemas", "a": "Cuando algo falla, me enfoco primero en entender la causa.", "b": "Cuando algo falla, me enfoco primero en restablecer la operación.", "ideal": 4}, {"id": "B11", "dim": "D5", "comp": "Accountability", "a": "Me motiva más terminar bien lo que empecé.", "b": "Me motiva más tomar desafíos nuevos.", "ideal": 2}]}, {"id": 2, "title": "¿Cuál lo describe mejor?", "instr": "Cada par contiene dos afirmaciones positivas. Elija la que lo describe mejor, aunque ambas le parezcan ciertas.", "fmt": "EF", "items": [{"id": "F01", "dim": "D5", "comp": "Confiabilidad y cumplimiento", "a": "Cumplo mis promesas.", "b": "Hago amigos con facilidad.", "key": "A"}, {"id": "F02", "dim": "D5", "comp": "Autonomía", "a": "Tengo una imaginación muy viva.", "b": "Comienzo las tareas de inmediato.", "key": "B"}, {"id": "F03", "dim": "D5", "comp": "Orientación a resultados", "a": "Convierto los planes en acciones.", "b": "Me divierto mucho.", "key": "A"}, {"id": "F04", "dim": "D5", "comp": "Seguridad y autocuidado", "a": "Busco la aventura.", "b": "Elijo mis palabras con cuidado.", "key": "B"}, {"id": "F05", "dim": "D2", "comp": "Planificación y organización", "a": "Hago las cosas según un plan.", "b": "Veo belleza en cosas que otros no notan.", "key": "A"}, {"id": "F06", "dim": "D5", "comp": "Autonomía", "a": "Confío en los demás.", "b": "Sé cómo lograr que las cosas se hagan.", "key": "B"}, {"id": "F07", "dim": "D5", "comp": "Adaptabilidad", "a": "Vivo mis emociones intensamente.", "b": "Mantengo la calma bajo presión.", "key": "B"}, {"id": "F08", "dim": "D4", "comp": "Análisis y resolución de problemas", "a": "Me gusta resolver problemas complejos.", "b": "En una reunión social, converso con mucha gente distinta.", "key": "A"}, {"id": "F09", "dim": "D3", "comp": "Orientación al cliente", "a": "Creo en la importancia del arte.", "b": "Me anticipo a las necesidades de los demás.", "key": "B"}, {"id": "F10", "dim": "D4", "comp": "Mejora continua", "a": "Exijo calidad.", "b": "Siento empatía por quienes están en peor situación que yo.", "key": "A"}, {"id": "F11", "dim": "D5", "comp": "Confiabilidad y cumplimiento", "a": "Me siento cómodo con la gente.", "b": "Procuro seguir las reglas.", "key": "B"}, {"id": "F12", "dim": "D5", "comp": "Orientación a resultados", "a": "Llevo a cabo mis planes.", "b": "Me río con facilidad.", "key": "A"}]}, {"id": 3, "title": "Autodescripción", "instr": "Descríbase como es habitualmente ahora, no como le gustaría ser. Indique qué tan exacta es cada frase para usted.", "fmt": "LIK", "items": [{"id": "L01", "dim": "D2", "comp": "Planificación y organización", "text": "A menudo hago planes de último minuto.", "inv": true}, {"id": "L02", "dim": "D5", "comp": "Autonomía", "text": "Postergo las decisiones.", "inv": true}, {"id": "L03", "dim": "D5", "comp": "Adaptabilidad", "text": "Supero los contratiempos con facilidad.", "inv": false}, {"id": "L04", "dim": "D5", "comp": "Adaptabilidad", "text": "Me desagradan los cambios.", "inv": true}, {"id": "L05", "dim": "D5", "comp": "Adaptabilidad", "text": "Me gusta comenzar cosas nuevas.", "inv": false}, {"id": "L06", "dim": "D4", "comp": "Análisis y resolución de problemas", "text": "Evito el material de lectura difícil.", "inv": true}, {"id": "L07", "dim": "D4", "comp": "Análisis y resolución de problemas", "text": "Puedo manejar mucha información.", "inv": false}, {"id": "L08", "dim": "D5", "comp": "Seguridad y autocuidado", "text": "Me lanzo a hacer cosas sin pensarlo mucho.", "inv": true}, {"id": "L09", "dim": "D2", "comp": "Planificación y organización", "text": "No me molesta el desorden.", "inv": true}, {"id": "L10", "dim": "D5", "comp": "Orientación a resultados", "text": "Me pongo estándares altos, a mí y a los demás.", "inv": false}, {"id": "L11", "dim": "D4", "comp": "Visión sistémica", "text": "No siempre veo las consecuencias de las cosas.", "inv": true}, {"id": "L12", "dim": "D3", "comp": "Ajuste relacional", "text": "Tengo la lengua afilada.", "inv": true}, {"id": "L13", "dim": "D5", "comp": "Accountability", "text": "Consigo que otros hagan parte de mis tareas.", "inv": true}, {"id": "L14", "dim": "D5", "comp": "Adaptabilidad", "text": "Los acontecimientos me sobrepasan.", "inv": true}]}, {"id": 4, "title": "Grado de acuerdo", "instr": "Indique qué tan de acuerdo está con cada afirmación aplicada a usted.", "fmt": "ACU", "items": [{"id": "M01", "text": "A veces me cuesta seguir con mi trabajo si no me animan.", "key": "F"}, {"id": "M02", "text": "A veces siento resentimiento cuando no se hace lo que quiero.", "key": "F"}, {"id": "M03", "text": "En algunas ocasiones he dejado de hacer algo por subestimar mi capacidad.", "key": "F"}, {"id": "M04", "text": "Ha habido momentos en que he sentido ganas de rebelarme contra la autoridad aun sabiendo que tenía razón.", "key": "F"}, {"id": "M05", "text": "Sin importar con quién hable, siempre sé escuchar.", "key": "V"}, {"id": "M06", "text": "Ha habido ocasiones en que me aproveché de alguien.", "key": "F"}, {"id": "M07", "text": "Siempre estoy dispuesto a admitir cuando cometo un error.", "key": "V"}, {"id": "M08", "text": "A veces intento desquitarme en lugar de perdonar y olvidar.", "key": "F"}, {"id": "M09", "text": "Siempre soy cortés, incluso con personas desagradables.", "key": "V"}, {"id": "M10", "text": "Nunca me ha molestado que otros expresen ideas muy distintas a las mías.", "key": "V"}, {"id": "M11", "text": "Ha habido momentos en que he sentido bastante envidia de la buena suerte de otros.", "key": "F"}, {"id": "M12", "text": "A veces me irritan las personas que me piden favores.", "key": "F"}, {"id": "M13", "text": "Nunca he dicho deliberadamente algo que hiriera a alguien.", "key": "V"}]}, {"id": 5, "title": "Situaciones de trabajo", "instr": "Lea cada situación. Marque la alternativa MÁS efectiva y la MENOS efectiva (deben ser distintas).", "fmt": "SJT", "items": [{"id": "S01", "dim": "D2", "comp": "Gestión de proyectos", "stem": "Durante el desarrollo de un proyecto, el cliente pide agregar un detector de metales que no estaba en el alcance. Dice que \"es algo menor\" y que necesita la línea en la fecha comprometida.", "opts": ["Evaluar su impacto en costo, plazo y layout, y presentarlo como cambio de alcance para que el cliente decida con esa información.", "Incorporarlo y absorber el costo para cuidar la relación, reorganizando el plan internamente.", "Aceptarlo con la condición de un nuevo plazo, que se informará cuando el proveedor del detector responda.", "Proponer dejarlo para una segunda etapa, después de la puesta en marcha de la línea."], "best": "a", "worst": "b"}, {"id": "S02", "dim": "D2", "comp": "Gestión de proyectos", "stem": "A tres semanas de la puesta en marcha, el proveedor europeo informa que un módulo de la máquina llegará con cuatro semanas de atraso.", "opts": ["Escalar al Gerente Comercial para que defina cómo y cuándo comunicarlo al cliente.", "Informar de inmediato al cliente el atraso y su causa, comprometiendo un plan alternativo en 48 horas.", "Esperar a que el proveedor confirme la nueva fecha antes de informar al cliente, para no entregar información incierta.", "Evaluar primero si es posible una puesta en marcha por etapas y comunicar el atraso al cliente junto con esa alternativa."], "best": "b", "worst": "c"}, {"id": "S03", "dim": "D2", "comp": "Gestión de proyectos", "stem": "En la prueba de aceptación en fábrica (FAT), la máquina cumple la velocidad comprometida, pero en 2 de 50 ciclos el corte transversal deja una rebaba. El cliente no lo notó.", "opts": ["Despachar según el plan y ajustarlo en la puesta en marcha, cuando la máquina trabaje con la lámina definitiva del cliente.", "Repetir el FAT completo después del ajuste, aunque el despacho se desplace una semana.", "Ajustar las cuchillas antes del despacho sin dejarlo en el acta, ya que es un ajuste habitual.", "Registrarlo como observación del FAT, analizar la causa y acordar con el cliente si se corrige antes del despacho o en la instalación."], "best": "d", "worst": "a"}, {"id": "S04", "dim": "D2", "comp": "Planificación y organización", "stem": "Llevas tres proyectos en paralelo. El Gerente Comercial te pide priorizar una cotización urgente para un cliente nuevo de gran tamaño, lo que atrasaría una semana la entrega de planos de un proyecto en curso.", "opts": ["Preparar una cotización preliminar con menor nivel de detalle y completarla si el cliente avanza.", "Hacer ambas cosas extendiendo tu jornada durante la semana, sin mover ningún plazo.", "Mostrar al Gerente Comercial el impacto sobre el proyecto en curso y acordar con él la prioridad.", "Hacer la cotización y avisar al cliente del proyecto en curso el nuevo plazo de los planos."], "best": "c", "worst": "b"}, {"id": "S05", "dim": "D2", "comp": "Gestión de proyectos", "stem": "En la puesta en marcha, el jefe de mantención del cliente pide cambiar la ubicación de un tablero eléctrico. No afecta el funcionamiento, pero suma dos días de trabajo del electricista.", "opts": ["Consultar con el responsable del contrato en el cliente si autoriza el cambio y su costo antes de ejecutarlo.", "Hacerlo sin costo solo si el electricista tiene holgura en su programación.", "Explicar que no está dentro del alcance y ofrecer cotizarlo aparte.", "Hacerlo para cuidar la relación con quien mantendrá la máquina, y registrar las horas para revisarlas al cierre."], "best": "a", "worst": "d"}, {"id": "S06", "dim": "D2", "comp": "Orientación a resultados", "stem": "A mitad de un proyecto a precio cerrado, el costo de materiales va 15% sobre lo presupuestado por el alza del acero inoxidable.", "opts": ["Solicitar al cliente un reajuste de precio invocando el alza del acero.", "Buscar ahorros en otras partidas del proyecto para compensar, antes de informar la desviación.", "Informar al Gerente Comercial el costo proyectado al cierre junto con alternativas: rediseño de piezas, otro proveedor o negociación.", "Seguir con el diseño original y registrar la desviación en el informe de cierre para mejorar futuras cotizaciones."], "best": "c", "worst": "d"}, {"id": "S07", "dim": "D3", "comp": "Orientación al cliente", "stem": "En una visita de levantamiento, el gerente de planta pide \"una máquina que duplique la velocidad actual\". Al recorrer la línea observas que el cuello de botella está en el llenado manual que ocurre antes de la máquina.", "opts": ["Mostrarle con datos de la visita dónde está el cuello de botella y proponer evaluar la línea completa, incluida la máquina.", "Cotizar la máquina más rápida que pide, ya que la decisión de inversión es del cliente.", "Cotizar la máquina solicitada e incluir en la propuesta una nota técnica sobre el llenado.", "Proponer un estudio de la línea, con costo, antes de cotizar cualquier equipo."], "best": "a", "worst": "b"}, {"id": "S08", "dim": "D3", "comp": "Ajuste relacional", "stem": "En una reunión técnica, el encargado de producción y el jefe de mantención del cliente discrepan sobre si la máquina debe incluir un módulo de cambio rápido de formato, que encarece la inversión.", "opts": ["Recomendar la opción que consideras técnicamente superior para destrabar la discusión.", "Alinearte con el encargado de producción, ya que es quien define la operación.", "Cotizar ambas alternativas y dejar que lo resuelvan internamente.", "Pedir datos de frecuencia de cambios de formato y costo de la detención, para calcular con ellos si se justifica."], "best": "d", "worst": "b"}, {"id": "S09", "dim": "D3", "comp": "Orientación al cliente", "stem": "Un cliente llama molesto porque la máquina \"no da la velocidad prometida\". Revisas la propuesta: la velocidad comprometida era para un formato distinto del que están usando.", "opts": ["Derivar el reclamo a servicio técnico, que es el área responsable de la postventa.", "Agendar una visita para medir en terreno, revisar con él su formato actual y luego mostrar lo comprometido y las opciones para su formato.", "Explicarle de inmediato, citando la propuesta, que la velocidad comprometida corresponde a otro formato.", "Ofrecer una visita técnica sin costo para optimizar parámetros y acercarse a la velocidad que espera."], "best": "b", "worst": "a"}, {"id": "S10", "dim": "D3", "comp": "Orientación al cliente", "stem": "Un potencial cliente pide una propuesta para envasar en termoformado un producto que nunca se ha envasado así y con el que no tienes experiencia (por ejemplo, un corte con hueso).", "opts": ["Declinar la propuesta, porque no hay experiencia que la respalde.", "Proponer pruebas de envasado con muestras del producto antes de comprometer especificaciones.", "Hacer la propuesta con supuestos conservadores de velocidad y especificaciones estándar.", "Consultar al fabricante del equipo y basar la propuesta en lo que indique."], "best": "b", "worst": "a"}, {"id": "S11", "dim": "D3", "comp": "Confiabilidad y cumplimiento", "stem": "El cliente pide el detalle de costos de la máquina (precio de compra al fabricante y margen) para \"evaluar mejor la inversión\".", "opts": ["Explicar que la estructura de costos no se entrega y ofrecer la información que sí apoya su evaluación: costo total de propiedad, consumos, repuestos y retorno.", "Entregar un desglose por componentes (máquina, instalación, capacitación) sin márgenes.", "Entregarle el detalle para generar confianza en la relación.", "Derivar la consulta al Gerente Comercial."], "best": "a", "worst": "c"}, {"id": "S12", "dim": "D4", "comp": "Toma de decisiones", "stem": "Al evaluar la factibilidad de un proyecto, concluyes que es técnicamente viable, pero la planta del cliente no tiene la capacidad eléctrica para la máquina; aumentar el empalme tomaría cuatro meses.", "opts": ["Incluir en la propuesta el aumento de empalme como requisito previo del cliente, con su efecto en el plazo.", "Proponer una máquina de menor consumo aunque rinda menos, para no depender del empalme.", "Presentar ambas alternativas con su efecto en plazo, capacidad y retorno para que el cliente elija.", "Dejar la propuesta en espera hasta que el cliente resuelva el empalme."], "best": "c", "worst": "d"}, {"id": "S13", "dim": "D4", "comp": "Mejora continua", "stem": "Un cambio que propusiste (otro material de goma de sellado) redujo los rechazos en un cliente. El Gerente Comercial quiere ofrecerlo de inmediato a todos los clientes con máquinas similares.", "opts": ["Ofrecerlo a todos, ya que el resultado está demostrado.", "Ofrecerlo solo a los clientes que reporten problemas de rechazo.", "Hacer una prueba piloto en un segundo cliente y decidir con esos datos.", "Revisar si las condiciones del primer cliente (lámina, producto, temperatura) se repiten en los demás antes de ofrecerlo."], "best": "d", "worst": "a"}, {"id": "S14", "dim": "D4", "comp": "Visión sistémica", "stem": "Detectas que una falla recurrente en la máquina de un cliente se produce porque el turno noche no sigue el procedimiento de cambio de lámina.", "opts": ["Reportarlo al jefe de producción del cliente con la evidencia.", "Proponer una modificación (guía o sensor) que impida el error, con su costo, e informar la situación en paralelo.", "Ajustar los parámetros de la máquina para que tolere mejor ese error.", "Coordinar una capacitación para el turno noche."], "best": "b", "worst": "c"}]}, {"id": 6, "title": "Ordenamiento", "instr": "Asigne a cada elemento un número del 1 al 5 según el orden indicado, sin repetir números.", "fmt": "ORD", "items": [{"id": "R01", "dim": "D2", "comp": "Gestión de proyectos", "stem": "Ordene estas etapas de un proyecto de instalación de una termoformadora según el orden en que deberían ocurrir (1 = primero, 5 = último).", "elems": ["Prueba de aceptación en fábrica (FAT)", "Instalación mecánica y conexión de servicios en la planta del cliente", "Aprobación del layout y la especificación técnica por parte del cliente", "Firma del acta de recepción final", "Prueba de aceptación en sitio (SAT) con producto real"], "key": [2, 3, 1, 5, 4]}, {"id": "R02", "dim": "D3", "comp": "Orientación al cliente", "stem": "Ordene estas acciones de una primera visita a un cliente nuevo según el orden que considere más efectivo (1 = primero, 5 = último).", "elems": ["Recorrer la línea actual y observar el proceso en operación", "Presentar soluciones y equipos de Austral Pack que podrían aplicar", "Entender el problema o necesidad de negocio que motiva el proyecto", "Acordar con el cliente los criterios de éxito (capacidad, formato, presupuesto, plazo)", "Registrar datos técnicos de servicios, espacio y restricciones de la planta"], "key": [2, 5, 1, 4, 3]}]}, {"id": 7, "title": "Conocimientos técnicos", "instr": "Elija la alternativa correcta. Hay una sola respuesta correcta por pregunta. No se requiere conocer una marca de máquina en particular.", "fmt": "OM", "items": [{"id": "T01", "dim": "D1", "comp": "Dominio técnico", "area": "Proceso de termoformado", "stem": "En una termoformadora, la cavidad de la bandeja se forma principalmente al:", "opts": ["Prensar la lámina inferior entre dos placas calientes, sin diferencia de presión", "Calentar la lámina inferior y llevarla contra el molde mediante vacío y/o aire comprimido", "Estirar la lámina inferior en frío con un punzón y fijar la forma con agua de enfriamiento", "Inyectar polímero fundido en el molde y unirlo luego a la lámina superior"], "key": "b"}, {"id": "T02", "dim": "D1", "comp": "Dominio técnico", "area": "Sellado", "stem": "Aparecen sellos con canales (arrugas) que cruzan el ancho del sello, aunque temperatura y tiempo están dentro del rango validado. ¿Qué revisaría primero?", "opts": ["La temperatura de la estación de moldeo", "La concentración de CO2 de la mezcla de gas", "El paralelismo y desgaste de la goma o contraplaca de sellado", "La velocidad de avance de la cadena de transporte"], "key": "c"}, {"id": "T03", "dim": "D1", "comp": "Dominio técnico", "area": "Sellado", "stem": "Con la misma lámina y temperatura, al aumentar progresivamente el tiempo de sellado lo esperable es:", "opts": ["Que la resistencia del sello suba hasta un punto y luego aparezcan adelgazamiento y daño del borde", "Que la resistencia del sello aumente de forma proporcional y sin un límite práctico", "Que la resistencia baje desde el inicio, porque el polímero se degrada con el calor", "Que no haya efecto, porque la resistencia del sello depende solo de la temperatura"], "key": "a"}, {"id": "T04", "dim": "D1", "comp": "Dominio técnico", "area": "Láminas", "stem": "Un cliente quiere que el consumidor abra el envase tirando de la lámina superior, sin herramientas. ¿Qué hay que especificar?", "opts": ["Una temperatura de sellado mayor para que el sello quede más uniforme", "Láminas con capa sellante pelable compatibles entre sí y su ventana de temperatura de sellado", "Una lámina superior de mayor espesor para que no se rompa al tirar de ella", "Una presión de sellado menor manteniendo las mismas láminas que se usan hoy"], "key": "b"}, {"id": "T05", "dim": "D1", "comp": "Dominio técnico", "area": "Atmósfera modificada", "stem": "En el envasado en atmósfera modificada de salmón fresco, ¿qué gas cumple la función principal de inhibir el crecimiento microbiano?", "opts": ["Nitrógeno (N2)", "Dióxido de carbono (CO2)", "Argón (Ar)", "Oxígeno (O2)"], "key": "b"}, {"id": "T06", "dim": "D1", "comp": "Dominio técnico", "area": "Atmósfera modificada", "stem": "Envases de salmón con 60% de CO2 se ven \"chupados\" (lámina superior pegada al producto) algunas horas después de envasar. La explicación más probable es:", "opts": ["El CO2 se disuelve en el agua y la grasa del producto, y baja el volumen de gas", "Hay fugas de gas por microcanales en el sello que no se ven a simple vista", "La lámina superior se contrae por el enfriamiento en la cámara de frío", "El N2 de la mezcla reacciona con las proteínas del producto con el tiempo"], "key": "a"}, {"id": "T07", "dim": "D1", "comp": "Dominio técnico", "area": "Láminas", "stem": "Una lámina de alta barrera al oxígeno para atmósfera modificada suele incorporar una capa de:", "opts": ["Polietileno de baja densidad", "PET reciclado sin recubrimiento", "Polipropileno orientado sin recubrimiento", "EVOH o PVDC"], "key": "d"}, {"id": "T08", "dim": "D1", "comp": "Dominio técnico", "area": "Neumática", "stem": "Un cilindro de doble efecto de 50 mm de diámetro trabaja a 6 bar. Su fuerza teórica de avance, sin roce, es aproximadamente:", "opts": ["3,0 kN", "12 kN", "0,3 kN", "1,2 kN"], "key": "d"}, {"id": "T09", "dim": "D1", "comp": "Dominio técnico", "area": "Vacío", "stem": "La bomba de vacío de una termoformadora tarda cada vez más en alcanzar el nivel de vacío programado en la estación de sellado. ¿Qué es lo más adecuado hacer primero?", "opts": ["Reemplazar el servomotor del avance de la lámina inferior", "Cambiar la mezcla de gas a una mayor proporción de nitrógeno", "Revisar juntas, filtros y el nivel y estado del aceite de la bomba", "Aumentar en la receta el tiempo de vacío hasta recuperar el nivel"], "key": "c"}, {"id": "T10", "dim": "D1", "comp": "Dominio técnico", "area": "Servicios e inocuidad", "stem": "Para el aire comprimido que puede entrar en contacto con alimentos, la especificación relevante es:", "opts": ["El uso de lubricadores en línea para prolongar la vida de los cilindros", "Una presión mínima de 10 bar en toda la red de distribución", "La clase de pureza según ISO 8573-1 (partículas, agua y aceite), con filtración acorde", "Cañerías de cobre en toda la instalación de aire de la planta"], "key": "c"}, {"id": "T11", "dim": "D1", "comp": "Dominio técnico", "area": "PLC y sensores", "stem": "Un sensor inductivo de salida PNP debe conectarse a una tarjeta de entradas digitales:", "opts": ["Tipo sinking (común a 0 V)", "Tipo sourcing (común a +24 V)", "De cualquier tipo, es indiferente", "Solo a una entrada analógica"], "key": "a"}, {"id": "T12", "dim": "D1", "comp": "Dominio técnico", "area": "PLC y sensores", "stem": "En una lámina superior impresa, la fotocélula de registro sirve para:", "opts": ["Leer la marca impresa y corregir el avance para que la impresión quede centrada en cada envase", "Medir el espesor de la lámina superior para ajustar la temperatura de sellado en cada ciclo", "Detectar si hay producto en la cavidad antes de que el envase ingrese a la estación de sellado", "Contar los envases terminados al final de la línea para el registro de producción"], "key": "a"}, {"id": "T13", "dim": "D1", "comp": "Dominio técnico", "area": "Seguridad de máquinas", "stem": "Una puerta de protección con enclavamiento debe detener la máquina al abrirse. Lo adecuado es que la señal de la puerta:", "opts": ["Cambie la máquina a modo manual con velocidad reducida mientras la puerta esté abierta", "Actúe mediante un relé o PLC de seguridad que corte la energía peligrosa, independiente de la lógica estándar", "Active una alarma en la pantalla para que el operador detenga la máquina con el botón de parada", "Ingrese a una entrada normal del PLC y que el programa detenga la secuencia de la máquina"], "key": "b"}, {"id": "T14", "dim": "D1", "comp": "Dominio técnico", "area": "Control y HMI", "stem": "Un cliente envasará tres formatos con distintas temperaturas, tiempos y largos de avance. ¿Cuál es la forma más adecuada de gestionarlo en el control?", "opts": ["Un programa de PLC distinto para cada formato, que se carga en cada cambio", "Que el operador ajuste los parámetros en cada cambio según una planilla impresa", "Parámetros intermedios fijos que funcionen razonablemente para los tres formatos", "Recetas almacenadas por formato, con acceso restringido para modificar parámetros"], "key": "d"}, {"id": "T15", "dim": "D1", "comp": "Dominio técnico", "area": "Accionamientos", "stem": "El avance de la lámina en una termoformadora moderna suele hacerse con servomotor y no con un accionamiento neumático, principalmente porque:", "opts": ["No requiere ningún ajuste al cambiar de formato ni de proveedor de lámina", "Tiene un menor costo de compra y de mantención que un accionamiento neumático equivalente", "Permite controlar posición, velocidad y aceleración, y cambiar el largo de avance por receta", "Entrega más fuerza de empuje que cualquier cilindro neumático disponible"], "key": "c"}, {"id": "T16", "dim": "D1", "comp": "Dominio técnico", "area": "Accionamientos", "stem": "Un motor trifásico de 4 polos a 50 Hz gira a unas 1.450 rpm. Si un variador lo alimenta a 25 Hz, su velocidad será aproximadamente:", "opts": ["1.450 rpm", "360 rpm", "2.900 rpm", "725 rpm"], "key": "d"}, {"id": "T17", "dim": "D1", "comp": "Dominio técnico", "area": "Integración e instalación", "stem": "La máquina requiere aire a 5–6 bar con un consumo de 1.000 l/min. El cliente tiene un compresor de 700 l/min a 7 bar que ya abastece otros equipos. Lo correcto es:", "opts": ["Solicitar al fabricante que reduzca por software el consumo de aire de la máquina", "Advertir que el caudal es insuficiente y dimensionar un compresor o línea dedicada antes de instalar", "Regular la presión a 6 bar en la entrada de la máquina y aceptar ciclos algo más lentos", "Instalar sin cambios, porque la presión del compresor es mayor que la requerida por la máquina"], "key": "b"}, {"id": "T18", "dim": "D1", "comp": "Dominio técnico", "area": "Diseño y planos", "stem": "En un plano, la indicación Ø20 H7/g6 corresponde a:", "opts": ["Un ajuste con juego entre agujero y eje", "Un ajuste con apriete entre agujero y eje", "La rugosidad superficial exigida a la pieza", "Un ajuste indeterminado entre agujero y eje"], "key": "a"}, {"id": "T19", "dim": "D1", "comp": "Dominio técnico", "area": "Diseño higiénico", "stem": "Para una pieza en contacto directo con el producto, en una zona húmeda con lavado frecuente y ambiente salino (planta de salmón), el material más adecuado es:", "opts": ["Aluminio 6061 sin tratamiento", "Acero galvanizado en caliente", "Acero inoxidable AISI 316", "Acero al carbono con pintura epóxica"], "key": "c"}, {"id": "T20", "dim": "D1", "comp": "Dominio técnico", "area": "Mantenibilidad", "stem": "Para definir la frecuencia de mantención preventiva de las cuchillas de corte en la máquina de un cliente nuevo, la base más sólida es:", "opts": ["Cambiarlas cuando los operadores reporten cortes defectuosos en la producción", "La misma frecuencia que se usa en otro cliente con una máquina parecida", "Una frecuencia fija mensual, igual para todos los componentes de corte", "La recomendación del fabricante, ajustada con el registro de ciclos y el desgaste observado"], "key": "d"}, {"id": "T21", "dim": "D1", "comp": "Dominio técnico", "area": "Mecánica", "stem": "Un motor a 1.450 rpm mueve un eje mediante poleas de 100 mm (en el motor) y 250 mm (en el eje). La velocidad del eje es aproximadamente:", "opts": ["3.625 rpm", "1.450 rpm", "580 rpm", "290 rpm"], "key": "c"}, {"id": "T22", "dim": "D1", "comp": "Dominio técnico", "area": "Mecánica", "stem": "Un motor de 1,5 kW a 1.450 rpm acciona un reductor de relación 20:1. Sin considerar pérdidas, el torque de salida del reductor es aproximadamente:", "opts": ["2.000 N·m", "10 N·m", "20 N·m", "200 N·m"], "key": "d"}, {"id": "T23", "dim": "D1", "comp": "Dominio técnico", "area": "Control de temperatura", "stem": "Una resistencia calefactora con termocupla y control on/off oscila ±10 °C en torno a la temperatura programada. La mejora más adecuada es:", "opts": ["Un controlador PID con salida proporcional (por ejemplo, un relé de estado sólido)", "Una termocupla de mayor diámetro para medir con más estabilidad", "Subir la temperatura programada en 10 °C para compensar la oscilación", "Una resistencia de mayor potencia para alcanzar antes la temperatura"], "key": "a"}, {"id": "T24", "dim": "D1", "comp": "Dominio técnico", "area": "Motores eléctricos", "stem": "Un motor trifásico se detiene por protección térmica después de unos minutos de funcionamiento, con carga normal. Lo primero que revisaría es:", "opts": ["Aumentar la frecuencia del variador para que el motor trabaje más holgado", "Lubricar el ventilador del motor para mejorar su refrigeración", "Subir el ajuste del guardamotor para que no vuelva a desconectar", "La tensión y la corriente en cada fase (falta de fase o desbalance)"], "key": "d"}, {"id": "T25", "dim": "D1", "comp": "Dominio técnico", "area": "Diagnóstico de fallas", "stem": "Una máquina se detiene de forma intermitente con la alarma \"sensor no detectado\", sin un patrón evidente. Lo primero que haría es:", "opts": ["Desactivar temporalmente la alarma para no detener la producción mientras se investiga", "Revisar el historial de alarmas y relacionarlo con condiciones como turno, vibración o estado de cable y conector", "Aumentar en el programa el tiempo de espera de la señal antes de generar la alarma", "Reemplazar el sensor por uno nuevo del mismo modelo y observar si la alarma se repite"], "key": "b"}, {"id": "T26", "dim": "D1", "comp": "Dominio técnico", "area": "Neumática", "stem": "Para que un cilindro neumático pueda detenerse y mantenerse en una posición intermedia de su carrera, se utiliza una válvula:", "opts": ["5/2 biestable", "5/3 de centro cerrado", "3/2 normalmente cerrada", "5/2 monoestable"], "key": "b"}, {"id": "T27", "dim": "D1", "comp": "Dominio técnico", "area": "Integración de líneas", "stem": "Una línea tiene tres máquinas en serie con capacidades de 60, 45 y 50 unidades por minuto. La capacidad de la línea es:", "opts": ["50 unidades/min", "51,7 unidades/min", "45 unidades/min", "155 unidades/min"], "key": "c"}, {"id": "T28", "dim": "D1", "comp": "Dominio técnico", "area": "Inocuidad", "stem": "En las zonas de una máquina donde puede haber contacto incidental con alimentos, se debe usar un lubricante:", "opts": ["Grado alimentario NSF H1", "Estándar, con protección física de la zona", "Cualquiera, si se limpia después de la mantención", "Grado NSF H2"], "key": "a"}]}, {"id": 8, "title": "Casos de cálculo", "instr": "Puede usar calculadora y papel. Elija la alternativa más cercana a su resultado.", "fmt": "OM", "items": [{"id": "C01", "dim": "D4", "comp": "Análisis y resolución de problemas", "stem": "Un sistema de visión cuesta USD 40.000. Reduce reprocesos por USD 16.000 al año, pero su mantención cuesta USD 2.000 al año. ¿Cuál es su período de recuperación simple?", "opts": ["2,2 años", "2,9 años", "3,3 años", "2,5 años"], "key": "b"}, {"id": "C02", "dim": "D4", "comp": "Toma de decisiones", "stem": "Alternativa A: inversión USD 100.000 y ahorro de USD 30.000/año durante 5 años. Alternativa B: inversión USD 60.000 y ahorro de USD 20.000/año durante 5 años. Con una tasa de 10% anual (factor de anualidad a 5 años = 3,791), ¿cuál tiene mayor valor actual neto (VAN)?", "opts": ["Ambas tienen el mismo VAN", "B, por aproximadamente USD 2.100", "A, por aproximadamente USD 2.100", "A, por aproximadamente USD 10.000"], "key": "b"}, {"id": "C03", "dim": "D4", "comp": "Análisis y resolución de problemas", "stem": "Una termoformadora produce 8 envases por ciclo a 10 ciclos por minuto. La disponibilidad real es 85% y se rechaza el 2% de los envases. ¿Cuántos envases conformes produce en un turno de 8 horas?", "opts": ["≈ 32.000", "≈ 27.700", "≈ 32.600", "≈ 38.400"], "key": "a"}, {"id": "C04", "dim": "D4", "comp": "Toma de decisiones", "stem": "Bomba de vacío X: USD 9.000 y consumo de 5,5 kW. Bomba Y: USD 7.000 y consumo de 7,5 kW. Ambas operan 4.000 h/año y la energía cuesta USD 0,15/kWh. Considerando compra y energía en 3 años, ¿cuál es más conveniente?", "opts": ["X, por aproximadamente USD 3.600", "Y, por aproximadamente USD 400", "Y, por aproximadamente USD 2.000", "X, por aproximadamente USD 1.600"], "key": "d"}, {"id": "C05", "dim": "D2", "comp": "Gestión de proyectos", "stem": "Actividades del proyecto (semanas): A Ingeniería 3 (inicio). B Compra de máquina 8 (después de A). C Obras civiles en planta 4 (después de A). D Fabricación de tablero 5 (después de A). E Instalación 2 (después de B y C). F Puesta en marcha 1 (después de D y E). ¿Cuál es la duración mínima del proyecto?", "opts": ["11 semanas", "16 semanas", "14 semanas", "23 semanas"], "key": "c"}, {"id": "C06", "dim": "D2", "comp": "Planificación y organización", "stem": "En el mismo proyecto de la pregunta anterior, si las obras civiles (C) se atrasan 3 semanas, ¿cuánto se atrasa el término del proyecto?", "opts": ["1 semana", "4 semanas", "No se atrasa", "3 semanas"], "key": "c"}, {"id": "C07", "dim": "D2", "comp": "Gestión de proyectos", "stem": "Un proyecto tiene un presupuesto de USD 50.000. Se ha completado el 40% del trabajo y se han gastado USD 26.000. Si el rendimiento de costos se mantiene, ¿cuál será el costo final estimado?", "opts": ["≈ USD 65.000", "≈ USD 50.000", "≈ USD 52.000", "≈ USD 76.000"], "key": "a"}]}, {"id": 9, "title": "Familiaridad con conceptos", "instr": "Indique qué tan familiarizado está con cada concepto. Esta parte no suma ni resta puntaje: solo informa su experiencia.", "fmt": "FAM", "items": [{"id": "O01", "text": "Envasado en atmósfera modificada (MAP)", "real": true}, {"id": "O02", "text": "Envasado skin al vacío", "real": true}, {"id": "O03", "text": "Válvula neumática 5/2 biestable", "real": true}, {"id": "O04", "text": "Control PID", "real": true}, {"id": "O05", "text": "Buses de campo (Profinet, EtherCAT)", "real": true}, {"id": "O06", "text": "Variador de frecuencia", "real": true}, {"id": "O07", "text": "Prueba de aceptación en fábrica (FAT)", "real": true}, {"id": "O08", "text": "Análisis de modos y efectos de falla (AMFE / FMEA)", "real": true}, {"id": "O09", "text": "Diseño higiénico según EHEDG", "real": true}, {"id": "O10", "text": "Bloqueo y etiquetado (LOTO)", "real": true}, {"id": "O11", "text": "Valor actual neto (VAN)", "real": true}, {"id": "O12", "text": "Diagrama de Gantt y ruta crítica", "real": true}, {"id": "O13", "text": "Rodamientos y transmisiones mecánicas", "real": true}, {"id": "O14", "text": "Termocuplas y control de temperatura", "real": true}]}]};
+const LET = "abcd";
+const ACU_L = ["Totalmente en desacuerdo","En desacuerdo","De acuerdo","Totalmente de acuerdo"];
+const FAM_L = ["Nunca lo he escuchado","Lo he escuchado","Sé lo que es","Lo he aplicado","Lo domino y podría enseñarlo"];
+const PARAMS = {wDes:.7, wAut:.3, d5:{EF:.5,LIK:.3,BIP:.2}, minTec:50, cuts:[75,60,45], mcAlert:10};
+const COMP_Q = {
+ "Gestión de proyectos":"Cuénteme de un proyecto en que el alcance cambió a mitad de camino. ¿Cómo lo gestionó con el cliente y con su jefatura?",
+ "Planificación y organización":"Describa una semana en que tuvo varios proyectos con entregas simultáneas. ¿Cómo decidió qué atender primero?",
+ "Orientación a resultados":"Hábleme de un proyecto que se desvió en costo o plazo. ¿Qué hizo y cuál fue el resultado final?",
+ "Orientación al cliente":"Cuénteme de una vez en que lo que el cliente pedía no era lo que necesitaba. ¿Cómo lo abordó?",
+ "Comunicación efectiva":"¿Cómo explicó una restricción técnica a un cliente sin formación técnica? ¿Cómo supo que lo entendió?",
+ "Ajuste relacional":"Describa un desacuerdo con alguien del cliente o de otra área. ¿Cómo quedó la relación después?",
+ "Confiabilidad y cumplimiento":"Cuénteme de un compromiso que no pudo cumplir. ¿Cuándo lo avisó y qué hizo?",
+ "Accountability":"Hábleme de un error suyo en un proyecto. ¿Cómo se enteró, qué hizo y qué cambió después?",
+ "Autonomía":"Describa una decisión técnica importante que tomó sin poder consultar a nadie. ¿Cómo la tomó?",
+ "Adaptabilidad":"Cuénteme de una puesta en marcha en que algo salió muy distinto a lo planificado. ¿Cómo reaccionó?",
+ "Análisis y resolución de problemas":"Describa una falla difícil que diagnosticó. ¿Qué hipótesis descartó y cómo llegó a la causa?",
+ "Toma de decisiones":"Cuénteme de una vez en que tuvo que elegir entre dos alternativas técnicas con información incompleta.",
+ "Visión sistémica":"¿Cuándo una solución suya resolvió un problema pero generó otro en otra parte del proceso del cliente?",
+ "Mejora continua":"Hábleme de una mejora que propuso en un equipo o proceso. ¿Cómo midió si funcionó?",
+ "Seguridad y autocuidado":"Cuénteme de una situación en terreno en que la presión por cumplir chocó con la seguridad. ¿Qué hizo?",
+ "Dominio técnico":"Pídale que explique, con un esquema, cómo diagnosticaría un problema de sellado o de vacío en una termoformadora."
+};
+const DIM_DESC = {
+ D1:"Conocimiento de procesos de termoformado y sellado, atmósfera modificada, neumática y vacío, control, accionamientos, integración, diseño higiénico y mantenibilidad.",
+ D2:"Capacidad de planificar y controlar proyectos: alcance, plazos, costos, cambios y puesta en marcha.",
+ D3:"Levantamiento de necesidades, comunicación técnica con el cliente y manejo de la relación.",
+ D4:"Evaluación de factibilidad, riesgos y rentabilidad; elección entre alternativas con criterio técnico y económico.",
+ D5:"Responsabilidad por resultados, autonomía, cumplimiento, adaptabilidad y conducta segura (autorreporte)."
+};
+
+// ---------- estado
+function hoy(){const d=new Date(),p=n=>String(n).padStart(2,"0");return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());}
+let S = load() || {name:"", date:hoy(), ans:{}, page:0};
+function save(){ try{ localStorage.setItem("evalIP_final", JSON.stringify(S)); }catch(e){} }
+function load(){ try{ return JSON.parse(localStorage.getItem("evalIP_final")); }catch(e){ return null; } }
+const $ = (h)=>{const t=document.createElement("template"); t.innerHTML=h.trim(); return t.content;};
+const esc = s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+function toast(m){const t=document.getElementById("toast"); t.textContent=m; t.hidden=false; clearTimeout(toast.h); toast.h=setTimeout(()=>t.hidden=true,2200);}
+
+// ---------- puntaje por ítem (0–1), igual que la planilla
+function itemScore(fmt, it){
+  const a=S.ans;
+  switch(fmt){
+    case "OM": return a[it.id]==null?null:(a[it.id]===it.key?1:0);
+    case "EF": return a[it.id]==null?null:(a[it.id]===it.key?1:0);
+    case "ACU": return a[it.id]==null?null:((it.key==="V"?a[it.id]>=3:a[it.id]<=2)?1:0);
+    case "BIP": return a[it.id]==null?null:1-Math.abs(a[it.id]-it.ideal)/5;
+    case "LIK": return a[it.id]==null?null:(it.inv?(5-a[it.id])/4:(a[it.id]-1)/4);
+    case "FAM": return a[it.id]==null?null:a[it.id];
+    case "SJT": {const b=a[it.id+"_b"], w=a[it.id+"_w"]; if(b==null||w==null) return null; if(b===w) return 0;
+      const sb=b===it.best?1:(b===it.worst?-1:0), sw=w===it.worst?1:(w===it.best?-1:0); return (sb+sw+2)/4;}
+    case "ORD": {const r=it.elems.map((_,j)=>a[it.id+"."+(j+1)]); if(r.some(x=>x==null)) return null;
+      return Math.max(0,1-r.reduce((s,x,j)=>s+Math.abs(x-it.key[j]),0)/12);}
+  }
+}
+const BLOCK = {BIP:"AUT",EF:"AUT",LIK:"AUT",SJT:"DES",ORD:"DES",OM:"DES",ACU:"VAL",FAM:"VAL"};
+const mean = xs => xs.length? xs.reduce((a,b)=>a+b,0)/xs.length : null;
+
+function compute(){
+  const rows=[];
+  DATA.parts.forEach(p=>p.items.forEach(it=>rows.push({p:p.id,fmt:p.fmt,blk:BLOCK[p.fmt],it,s:itemScore(p.fmt,it)})));
+  const scored = rows.filter(r=>r.s!=null);
+  const dim={};
+  for(const d of Object.keys(DATA.dims)){
+    const des=mean(scored.filter(r=>r.it.dim===d&&r.blk==="DES").map(r=>r.s));
+    const aut=mean(scored.filter(r=>r.it.dim===d&&r.blk==="AUT").map(r=>r.s));
+    let v=null;
+    if(d==="D1") v=des;
+    else if(d==="D5"){ const f=k=>mean(scored.filter(r=>r.it.dim==="D5"&&r.fmt===k).map(r=>r.s));
+      const parts=Object.entries(PARAMS.d5).map(([k,w])=>[f(k),w]).filter(x=>x[0]!=null);
+      v=parts.length? parts.reduce((s,[x,w])=>s+x*w,0)/parts.reduce((s,[,w])=>s+w,0):null; }
+    else v=(des==null||aut==null)?(des??aut):(PARAMS.wDes*des+PARAMS.wAut*aut);
+    dim[d]={des:des==null?null:des*100, aut:aut==null?null:aut*100, v:v==null?null:v*100};
+  }
+  const ds=Object.keys(DATA.dims);
+  const complete=ds.every(d=>dim[d].v!=null);
+  const total=complete? ds.reduce((s,d)=>s+dim[d].v*DATA.dims[d].w,0):null;
+  const nItems=rows.length, nAns=scored.length;
+  const mc=rows.filter(r=>r.fmt==="ACU"&&r.s!=null).reduce((s,r)=>s+r.s,0);
+  const fam=rows.filter(r=>r.fmt==="FAM"&&r.s!=null);
+  // competencias
+  const comp={};
+  scored.filter(r=>r.blk!=="VAL").forEach(r=>{(comp[r.it.comp]??=[]).push(r.s)});
+  const compT={}; rows.filter(r=>r.blk!=="VAL").forEach(r=>compT[r.it.comp]=(compT[r.it.comp]||0)+1);
+  const comps=Object.keys(compT).map(c=>({c,v:comp[c]?mean(comp[c])*100:null,n:compT[c]}));
+  // áreas técnicas
+  const areas={}; scored.filter(r=>r.p===7).forEach(r=>(areas[r.it.area]??=[]).push(r.s));
+  let level;
+  if(total==null) level={t:"Incompleto",c:"c-lo"};
+  else if(dim.D1.v<PARAMS.minTec) level={t:"No alcanza el mínimo técnico",c:"c-bad"};
+  else if(total>=PARAMS.cuts[0]) level={t:"Ajuste alto",c:"c-hi"};
+  else if(total>=PARAMS.cuts[1]) level={t:"Ajuste adecuado",c:"c-mid"};
+  else if(total>=PARAMS.cuts[2]) level={t:"Ajuste parcial",c:"c-lo"};
+  else level={t:"Ajuste bajo",c:"c-bad"};
+  return {rows,dim,total,level,nItems,nAns,mc,fam,comps,areas};
+}
+function missingIn(p){
+  return p.items.filter(it=>{
+    if(p.fmt==="SJT") return S.ans[it.id+"_b"]==null||S.ans[it.id+"_w"]==null;
+    if(p.fmt==="ORD") return it.elems.some((_,j)=>S.ans[it.id+"."+(j+1)]==null);
+    return S.ans[it.id]==null;}).map(it=>it.id);
+}
+
+// ---------- vistas
+const app=document.getElementById("app");
+const LOGO=`<svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><path d="M20 2 38 20 20 38 2 20Z" fill="var(--brand)"/><path d="M20 8 32 20 20 32 8 20Z" fill="var(--accent)"/><path d="M15 26V18a5 5 0 0 1 10 0v8h-3.5v-3h-3v3Zm3.5-6.5h3V18a1.5 1.5 0 0 0-3 0Z" fill="#fff"/></svg>`;
+const brand = ()=>`<div class="brandbar">${LOGO}<span>AUSTRAL PACK</span></div>`;
+
+function radio(name,val,label,checked){return `<label class="pill"><input type="radio" name="${name}" value="${val}" ${checked?"checked":""}><span>${label}</span></label>`}
+
+function renderPart(p){
+  S.resume=p.id; save();
+  app.innerHTML="";
+  const steps=DATA.parts.map((q,i)=>`<i class="${q.id<p.id?"done":q.id===p.id?"cur":""}"></i>`).join("");
+  let html=`${brand()}<div class="progress"><div class="ptitle"><span>Parte ${p.id} de 9 · ${esc(p.title)}</span><span class="muted" id="cnt"></span></div><div class="steps">${steps}</div></div>
+  <div class="stack"><p class="muted">${esc(p.instr)}</p>`;
+  if(p.fmt==="LIK") html+=`<p class="note">1 = Muy inexacta · 2 = Moderadamente inexacta · 3 = Ni exacta ni inexacta · 4 = Moderadamente exacta · 5 = Muy exacta</p>`;
+  if(p.fmt==="FAM") html+=`<p class="note">0 = Nunca lo he escuchado · 1 = Lo he escuchado · 2 = Sé lo que es · 3 = Lo he aplicado · 4 = Lo domino y podría enseñarlo</p>`;
+  p.items.forEach((it,k)=>{
+    const a=S.ans[it.id];
+    html+=`<div class="item" id="it-${it.id}"><span class="qid">${it.id}</span>`;
+    if(p.fmt==="BIP"){
+      html+=`<div class="bip"><p class="a">A · ${esc(it.a)}</p><div class="scale" role="radiogroup" aria-label="${it.id}">${[1,2,3,4,5,6].map(v=>radio(it.id,v,v,a===v)).join("")}</div><p>B · ${esc(it.b)}</p></div>`;
+    } else if(p.fmt==="EF"){
+      html+=`<div class="opts">${["A","B"].map(L=>`<label class="opt"><input type="radio" name="${it.id}" value="${L}" ${a===L?"checked":""}><span><b>${L}.</b> ${esc(L==="A"?it.a:it.b)}</span></label>`).join("")}</div>`;
+    } else if(p.fmt==="LIK"){
+      html+=`<p class="stem">${esc(it.text)}</p><div class="scale">${[1,2,3,4,5].map(v=>radio(it.id,v,v,a===v)).join("")}</div>`;
+    } else if(p.fmt==="ACU"){
+      html+=`<p class="stem">${esc(it.text)}</p><div class="scale">${ACU_L.map((l,j)=>radio(it.id,j+1,l,a===j+1)).join("")}</div>`;
+    } else if(p.fmt==="FAM"){
+      html+=`<p class="stem">${esc(it.text)}</p><div class="scale">${[0,1,2,3,4].map(v=>radio(it.id,v,v,a===v)).join("")}</div>`;
+    } else if(p.fmt==="OM"){
+      html+=`<p class="stem">${esc(it.stem)}</p><div class="opts">${it.opts.map((o,j)=>`<label class="opt"><input type="radio" name="${it.id}" value="${LET[j]}" ${a===LET[j]?"checked":""}><span><b>${LET[j]})</b> ${esc(o)}</span></label>`).join("")}</div>`;
+    } else if(p.fmt==="SJT"){
+      const b=S.ans[it.id+"_b"], w=S.ans[it.id+"_w"];
+      html+=`<p class="stem">${esc(it.stem)}</p><div class="sjt"><span class="h">Más</span><span class="h">Menos</span><span></span>
+      ${it.opts.map((o,j)=>`<label class="r"><input type="radio" name="${it.id}_b" value="${LET[j]}" aria-label="${LET[j]} más efectiva" ${b===LET[j]?"checked":""}></label><label class="r"><input type="radio" name="${it.id}_w" value="${LET[j]}" aria-label="${LET[j]} menos efectiva" ${w===LET[j]?"checked":""}></label><span class="t"><b>${LET[j]})</b> ${esc(o)}</span>`).join("")}</div>`;
+    } else if(p.fmt==="ORD"){
+      html+=`<p class="stem">${esc(it.stem)}</p><div class="ord">${it.elems.map((e,j)=>{const id=it.id+"."+(j+1), v=S.ans[id];
+        return `<label for="s-${id}">${esc(e)}</label><select id="s-${id}" data-id="${id}"><option value="">—</option>${[1,2,3,4,5].map(n=>`<option ${v===n?"selected":""}>${n}</option>`).join("")}</select>`}).join("")}</div><p class="dup" id="dup-${it.id}" hidden>Hay números repetidos.</p>`;
+    }
+    html+=`</div>`;
+  });
+  html+=`<div class="nav"><button id="prev">${p.id===1?"Inicio":"Anterior"}</button><span class="missing" id="miss"></span><button class="primary" id="next">${p.id===9?"Finalizar":"Siguiente"}</button></div></div>`;
+  app.append($(html));
+  const upd=()=>{const m=missingIn(p); app.querySelector("#cnt").textContent=`${p.items.length-m.length}/${p.items.length}`;
+    app.querySelectorAll(".item").forEach(el=>el.classList.remove("miss"));};
+  app.querySelectorAll("input[type=radio]").forEach(r=>r.onchange=()=>{
+    const num=["BIP","LIK","FAM","ACU"].includes(p.fmt);
+    S.ans[r.name]=num?Number(r.value):r.value;
+    if(p.fmt==="SJT"){ const base=r.name.slice(0,-2), other=base+(r.name.endsWith("_b")?"_w":"_b");
+      if(S.ans[other]===r.value){ delete S.ans[other]; const o=app.querySelector(`input[name="${other}"][value="${r.value}"]`); if(o) o.checked=false; } }
+    save(); upd();});
+  app.querySelectorAll("select").forEach(s=>s.onchange=()=>{ if(s.value) S.ans[s.dataset.id]=Number(s.value); else delete S.ans[s.dataset.id];
+    const base=s.dataset.id.split(".")[0], vals=[...app.querySelectorAll(`select[data-id^="${base}."]`)].map(x=>x.value).filter(Boolean);
+    app.querySelector("#dup-"+base).hidden=new Set(vals).size===vals.length; save(); upd();});
+  upd();
+  app.querySelector("#prev").onclick=()=>{S.page--;save();render();scrollTo(0,0)};
+  const next=app.querySelector("#next");
+  next.onclick=()=>{
+    const m=missingIn(p);
+    if(m.length && !next.dataset.c){ next.dataset.c=1; next.textContent="Continuar igual";
+      app.querySelector("#miss").textContent=`Faltan ${m.length} respuesta(s): ${m.join(", ")}`;
+      m.forEach(id=>app.querySelector("#it-"+id)?.classList.add("miss"));
+      app.querySelector("#it-"+m[0])?.scrollIntoView({block:"center"}); return; }
+    S.page++;save();render();scrollTo(0,0)};
+}
+
+function fmt1(v){return v==null?"—":v.toFixed(1).replace(".",",")}
+function lvlDim(v){ if(v==null) return ["Sin datos","c-lo"]; if(v>=75) return ["Fortaleza","c-hi"]; if(v>=60) return ["Adecuado","c-mid"]; if(v>=45) return ["A profundizar","c-lo"]; return ["Bajo lo esperado","c-bad"]; }
+
+// ---------- envío por correo (EmailJS)
+const EMAILJS = {service:"service_ksbo7qh", template:"template_llrstk4", publicKey:"nD0-T5Ccmq9JDy6lr"};
+const LVL_TEXT = {
+  "Ajuste alto":"El perfil muestra un ajuste alto a las exigencias del cargo. Se recomienda avanzar a entrevista técnica para confirmar los resultados.",
+  "Ajuste adecuado":"El perfil cumple en general con las exigencias del cargo, con algunas áreas a profundizar en entrevista.",
+  "Ajuste parcial":"El perfil cumple parcialmente con las exigencias del cargo. Hay brechas relevantes que deben revisarse antes de avanzar.",
+  "Ajuste bajo":"El perfil presenta brechas importantes respecto de las exigencias del cargo.",
+  "No alcanza el mínimo técnico":"El conocimiento técnico (D1) queda bajo el mínimo de 50 puntos, exigido independiente del puntaje total.",
+  "Incompleto":"No hay respuestas suficientes para calcular el puntaje en todas las dimensiones."
+};
+const LVL_COLOR = {"c-hi":"#2F7D4F","c-mid":"#1E1718","c-lo":"#B26A00","c-bad":"#B3261E"};
+
+function render(){
+  if(S.sent) return renderThanks();
+  if(S.page===0) return renderStart();
+  if(S.page>=10) return renderSubmit();
+  renderPart(DATA.parts[S.page-1]);
+}
+
+function renderStart(){
+  const started=Object.keys(S.ans).length>0;
+  app.innerHTML="";
+  app.append($(`${brand()}
+  <div class="stack">
+    <div class="stack" style="gap:8px"><span class="eyebrow">Evaluación de ajuste al cargo</span><h1>Ingeniero de Proyectos</h1>
+    <p class="muted">Gerencia Comercial · Máquinas y Proyectos</p></div>
+    <div class="card stack">
+      <div class="row"><label for="nm" style="min-width:90px;font-weight:600">Nombre</label><input id="nm" type="text" value="${esc(S.name)}" style="flex:1" placeholder="Nombre y apellido" autocomplete="name"></div>
+      <div class="row"><label for="dt" style="min-width:90px;font-weight:600">Fecha</label><input id="dt" type="date" value="${esc(S.date)}"></div>
+      <p class="dup" id="nmErr" hidden>Ingrese su nombre y apellido para comenzar.</p>
+    </div>
+    <div class="stack" style="gap:10px">
+      <h2>Antes de comenzar</h2>
+      <p>Responda de una sola vez y en un lugar tranquilo. En la Parte 8 puede usar calculadora y papel.</p>
+      <p>En las partes 1 a 4 no hay respuestas correctas: describa cómo es y cómo trabaja hoy. Las respuestas más útiles son las espontáneas. En las partes 5 a 8 sí hay respuestas mejores que otras; si no sabe, elija la que le parezca más razonable.</p>
+    </div>
+    <div class="row"><button class="primary" id="go">${started?"Continuar":"Comenzar"}</button></div>
+  </div>`));
+  const nm=app.querySelector("#nm"), dt=app.querySelector("#dt"), err=app.querySelector("#nmErr");
+  nm.oninput=()=>{S.name=nm.value;err.hidden=true;save()}; dt.oninput=()=>{S.date=dt.value;save()};
+  app.querySelector("#go").onclick=()=>{
+    if(!S.name.trim()){err.hidden=false;nm.focus();return;}
+    S.page=S.resume||1;save();render();scrollTo(0,0)};
+}
+
+function renderSubmit(){
+  const miss=DATA.parts.map(p=>({p,m:missingIn(p)})).filter(x=>x.m.length);
+  app.innerHTML="";
+  if(miss.length){
+    app.append($(`${brand()}<div class="stack">
+      <h1>Faltan respuestas</h1>
+      <p>Para enviar el cuestionario debe responder todas las preguntas. Revise estas partes:</p>
+      <div class="stack" style="gap:8px">${miss.map(x=>`<div class="card row" style="justify-content:space-between;padding:12px 16px"><span><b>Parte ${x.p.id} · ${esc(x.p.title)}</b><br><span class="muted">Faltan ${x.m.length}: ${x.m.join(", ")}</span></span><button data-p="${x.p.id}">Ir a la parte ${x.p.id}</button></div>`).join("")}</div>
+    </div>`));
+    app.querySelectorAll("button[data-p]").forEach(b=>b.onclick=()=>{S.page=Number(b.dataset.p);save();render();scrollTo(0,0)});
+    return;
+  }
+  app.append($(`${brand()}<div class="stack">
+    <h1>Cuestionario completo</h1>
+    <p>Respondió todas las preguntas. Al presionar <b>Enviar respuestas</b>, sus respuestas quedarán registradas y ya no podrá modificarlas.</p>
+    <div class="row"><button id="rev">Revisar respuestas</button><button class="primary" id="send">Enviar respuestas</button></div>
+    <p id="st" class="muted" aria-live="polite"></p>
+  </div>`));
+  app.querySelector("#rev").onclick=()=>{S.page=9;save();render();scrollTo(0,0)};
+  const btn=app.querySelector("#send"), st=app.querySelector("#st");
+  btn.onclick=()=>{
+    const fail=()=>{btn.disabled=false;btn.textContent="Reintentar envío";st.style.color="var(--bad)";
+      st.textContent="No se pudieron enviar sus respuestas. Revise su conexión a internet e intente nuevamente. Si el problema continúa, no cierre esta página y avise a quien le envió el cuestionario.";};
+    if(typeof emailjs==="undefined") return fail();
+    btn.disabled=true; btn.textContent="Enviando…"; st.style.color=""; st.textContent="";
+    const R=compute();
+    emailjs.send(EMAILJS.service, EMAILJS.template, {
+      candidate_name:S.name.trim(),
+      report_html:emailReport(R),
+      date:new Date().toLocaleDateString("es-CL"),
+      score:R.total==null?"":fmt1(R.total),
+      level:R.level.t
+    }, {publicKey:EMAILJS.publicKey}).then(()=>{
+      S={sent:true,name:S.name.trim()}; save(); render(); scrollTo(0,0);
+    }, fail);
+  };
+}
+
+function renderThanks(){
+  app.innerHTML="";
+  app.append($(`${brand()}<div class="stack" style="padding-top:24px">
+    <span class="eyebrow">Evaluación enviada</span>
+    <h1>Gracias${S.name?", "+esc(S.name.split(" ")[0]):""}</h1>
+    <p>Sus respuestas fueron enviadas correctamente. Austral Pack revisará los resultados y se pondrá en contacto con usted.</p>
+    <p class="muted">Ya puede cerrar esta ventana.</p>
+  </div>`));
+}
+
+// ---------- informe para el correo (estilos en línea, compatible con clientes de correo)
+function emailReport(R){
+  const C={ink:"#1E1718",mut:"#6B5F60",line:"#E4DCDC",brand:"#9E050D",acc:"#E0151E",soft:"#FA4440",tint:"#FBECEC"};
+  const fecha=S.date?new Date(S.date+"T12:00").toLocaleDateString("es-CL",{day:"numeric",month:"long",year:"numeric"}):"—";
+  const envio=new Date().toLocaleString("es-CL",{dateStyle:"medium",timeStyle:"short"});
+  const H=(n,t)=>`<h2 style="font-size:16px;color:${C.brand};margin:28px 0 10px;border-bottom:1px solid ${C.line};padding-bottom:6px">${n}. ${t}</h2>`;
+  const td=`style="padding:6px 8px;border-bottom:1px solid ${C.line};vertical-align:top"`;
+  const tdr=`style="padding:6px 8px;border-bottom:1px solid ${C.line};text-align:right;white-space:nowrap"`;
+  const th=(t,r)=>`<th style="text-align:${r?"right":"left"};padding:6px 8px;font-size:11px;color:${C.mut};text-transform:uppercase;border-bottom:2px solid ${C.line}">${t}</th>`;
+  const bar=v=>{const w=Math.max(0,Math.min(100,Math.round(v??0)));
+    return `<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse"><tr>${w>0?`<td width="${w}%" style="background:${C.acc};height:8px;font-size:0;line-height:0">&nbsp;</td>`:""}${w<100?`<td style="background:${C.line};height:8px;font-size:0;line-height:0">&nbsp;</td>`:""}</tr></table>`;};
+  const ds=Object.keys(DATA.dims);
+  const comps=[...R.comps].sort((a,b)=>(b.v??-1)-(a.v??-1));
+  const weak=comps.filter(c=>c.v!=null&&c.n>=2).sort((a,b)=>a.v-b.v).slice(0,4);
+  const strong=comps.filter(c=>c.v!=null&&c.n>=2&&c.v>=75).slice(0,3);
+  const lc=LVL_COLOR[R.level.c];
+  const mcW=R.mc>=PARAMS.mcAlert;
+
+  let h=`<div style="font-family:Arial,Helvetica,sans-serif;color:${C.ink};font-size:14px;line-height:1.45;max-width:680px;margin:0 auto">`;
+  h+=`<div style="border-bottom:3px solid ${C.brand};padding-bottom:12px">
+    <div style="font-weight:bold;letter-spacing:2px;color:${C.brand};font-size:12px">AUSTRAL PACK · INFORME DE EVALUACIÓN</div>
+    <div style="font-size:22px;font-weight:bold;margin:4px 0 10px">Ajuste al cargo: Ingeniero de Proyectos</div>
+    <table cellpadding="0" cellspacing="0" style="font-size:13px"><tr><td style="color:${C.mut};padding-right:12px">Evaluado</td><td><b>${esc(S.name.trim())}</b></td></tr>
+    <tr><td style="color:${C.mut};padding-right:12px">Fecha de aplicación</td><td>${fecha}</td></tr>
+    <tr><td style="color:${C.mut};padding-right:12px">Envío</td><td>${envio}</td></tr>
+    <tr><td style="color:${C.mut};padding-right:12px">Cargo</td><td>Ingeniero de Proyectos · DO-DC-01 · Gerencia Comercial</td></tr></table></div>`;
+
+  h+=H(1,"Resultado global");
+  h+=`<table cellpadding="0" cellspacing="0" width="100%"><tr><td width="130" style="vertical-align:top"><div style="font-size:44px;font-weight:bold;color:${C.acc};line-height:1">${R.total==null?"—":Math.round(R.total)}</div><div style="color:${C.mut};font-size:12px">de 100</div></td>
+    <td style="vertical-align:top"><div style="display:inline-block;border:1px solid ${lc};color:${lc};border-radius:12px;padding:2px 10px;font-weight:bold;font-size:13px">${R.level.t}</div>
+    <p style="margin:8px 0 4px">${LVL_TEXT[R.level.t]}</p><p style="margin:0;color:${C.mut};font-size:12px">Bandas: 75 o más, ajuste alto · 60 a 74, adecuado · 45 a 59, parcial · menos de 45, bajo. Mínimo técnico: D1 ≥ ${PARAMS.minTec}.</p></td></tr></table>`;
+
+  h+=H(2,"Resultados por dimensión");
+  h+=`<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px"><tr>${th("Dimensión")}${th("Peso",1)}${th("Puntaje",1)}${th("Nivel")}</tr>`;
+  ds.forEach(d=>{const x=R.dim[d],[lt,lcc]=lvlDim(x.v);
+    const sub=d==="D1"?"Solo preguntas de conocimiento":d==="D5"?"Solo autorreporte":`Desempeño ${fmt1(x.des)} · Autorreporte ${fmt1(x.aut)}`;
+    h+=`<tr><td ${td}><b>${d} · ${esc(DATA.dims[d].name)}</b><div style="margin:5px 0 3px">${bar(x.v)}</div><span style="color:${C.mut};font-size:12px">${sub}</span></td><td ${tdr}>${Math.round(DATA.dims[d].w*100)}%</td><td ${tdr}><b>${fmt1(x.v)}</b></td><td ${td}><span style="color:${LVL_COLOR[lcc]};font-weight:bold">${lt}</span></td></tr>`;});
+  h+=`</table><p style="color:${C.mut};font-size:12px">En D2 a D4 el puntaje combina 70% de preguntas con respuesta esperada y 30% de autorreporte.</p>`;
+
+  h+=H(3,"Validez de las respuestas");
+  h+=`<p style="margin:4px 0">Ítems respondidos: <b>${R.nAns} de ${R.nItems}</b>.</p>
+      <p style="margin:4px 0">Deseabilidad social (Marlowe-Crowne): <b>${R.mc} de 13</b>. ${mcW?`<span style="color:#B26A00;font-weight:bold">Alerta:</span> posible tendencia a dar una imagen favorable; interprete con cautela el autorreporte (D5 y parte de D2–D4) y contraste en entrevista.`:"Sin alerta."}</p>`;
+
+  h+=H(4,"Perfil por competencia");
+  h+=`<table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px"><tr>${th("Competencia (Diccionario v1.0)")}${th("Puntaje",1)}${th("Ítems",1)}</tr>`+
+     comps.map(c=>`<tr><td ${td}>${esc(c.c)}</td><td ${tdr}>${fmt1(c.v)}</td><td ${tdr}>${c.n}</td></tr>`).join("")+`</table>`;
+  h+=`<p style="margin:14px 0 6px;font-weight:bold">Conocimiento técnico por área (aciertos)</p><table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px">`+
+     Object.entries(R.areas).map(([a,xs])=>`<tr><td ${td}>${esc(a)}</td><td ${tdr}>${xs.filter(x=>x===1).length} / ${xs.length}</td></tr>`).join("")+`</table>`;
+  h+=`<p style="margin:14px 0 6px;font-weight:bold">Familiaridad declarada con conceptos técnicos (no puntúa)</p><table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px">`+
+     R.fam.map(r=>`<tr><td ${td}>${esc(r.it.text)}</td><td ${td}>${r.s} · ${FAM_L[r.s]}</td></tr>`).join("")+`</table>`;
+
+  h+=H(5,"Síntesis y recomendaciones para la entrevista");
+  h+=`<p style="margin:4px 0"><b>Fortalezas:</b> ${strong.length?strong.map(c=>esc(c.c)).join(", "):"no se observan competencias sobre 75 puntos con al menos dos ítems"}.</p>
+      <p style="margin:4px 0"><b>Aspectos a profundizar:</b> ${weak.map(c=>`${esc(c.c)} (${fmt1(c.v)})`).join(", ")}.</p>
+      <ol style="margin:8px 0;padding-left:20px">${weak.map(c=>`<li style="margin-bottom:6px"><b>${esc(c.c)}.</b> ${esc(COMP_Q[c.c]||"")}</li>`).join("")}</ol>`;
+
+  h+=H(6,"Consideraciones metodológicas");
+  h+=`<p style="color:${C.mut};font-size:12px">Las claves de juicio situacional, los puntos ideales de las preferencias de trabajo y las preguntas técnicas son propuestas internas; las bandas deben calibrarse con la experiencia de aplicación. Autodescripción: IPIP (dominio público). Deseabilidad social: Marlowe-Crowne forma C (Reynolds, 1982) en escala de acuerdo de 4 puntos. Este informe es un insumo para la decisión y debe complementarse con entrevista y referencias.</p>`;
+
+  // detalle compacto
+  const cells=R.rows.map(r=>{const it=r.it; let a,k;
+    if(r.fmt==="SJT"){a=`${S.ans[it.id+"_b"]??"–"}/${S.ans[it.id+"_w"]??"–"}`;k=`${it.best}/${it.worst}`;}
+    else if(r.fmt==="ORD"){a=it.elems.map((_,j)=>S.ans[it.id+"."+(j+1)]??"–").join("");k=it.key.join("");}
+    else {a=S.ans[it.id]??"–"; k=r.fmt==="BIP"?"i"+it.ideal:r.fmt==="LIK"?(it.inv?"inv":"dir"):r.fmt==="FAM"?"":r.fmt==="ACU"?(it.key==="V"?"ac":"des"):it.key;}
+    const sc=r.s==null?"–":r.fmt==="FAM"?"":(Math.round(r.s*100)/100);
+    return `<b>${it.id}</b> ${esc(a)}${k!==""?` <span style="color:${C.mut}">(${k})</span>`:""}${sc!==""?` ${sc}`:""}`;});
+  h+=H(7,"Detalle de respuestas");
+  h+=`<p style="color:${C.mut};font-size:12px;margin:0 0 6px">Formato: ID respuesta (clave) puntaje 0–1. SJT: más/menos efectiva. Pares bipolares: i = punto ideal. Likert: dir/inv. Grado de acuerdo: ac/des = respuesta deseable.</p><table width="100%" cellpadding="0" cellspacing="0" style="font-size:11px;font-family:Consolas,monospace">`;
+  for(let i=0;i<cells.length;i+=4) h+=`<tr>${cells.slice(i,i+4).map(c=>`<td style="padding:2px 4px;border-bottom:1px solid ${C.line}">${c}</td>`).join("")}</tr>`;
+  h+=`</table><p style="color:${C.mut};font-size:11px;margin-top:16px">Uso exclusivo interno · Austral Pack S.A.</p></div>`;
+  return h;
+}
+
+if(!S.sent) S.page=0;
+render();
+</script>
+</body>
+</html>
